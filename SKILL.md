@@ -1,34 +1,111 @@
 ---
 name: product-reference-storyboard
-description: Analyze reference video(s) plus a product image and produce either a visual storyboard or a strict JSON video-recreation prompt. Match the reference's observable shot sequence, timing, palette, grading, lighting, camera, transitions, motion, atmosphere, and effects while preserving the user's product identity. Invoke with /product-reference-storyboard.
+description: Analyze reference video(s) plus a product image and produce either a generator-ready Video JSON prompt or a detailed Storyboard. Match the reference's observable shot sequence, timing, palette, grading, lighting, camera, transitions, motion, atmosphere, and effects while preserving the user's product identity. Invoke with /product-reference-storyboard.
 metadata:
   author: openai-generated
-  version: "2.0.0"
+  version: "4.0.0"
   compatibility: Agent Skills compatible clients including ChatGPT Skills, Claude/Claude Code, OpenAI Codex, and clients supporting the Agent Skills open format. Visual/video analysis capability is required for direct media understanding.
 ---
 
-# Product Reference Storyboard v2
+# Product Reference Storyboard v4
 
 ## Invocation
 
 `/product-reference-storyboard`
 
-## Mandatory mode selection
+## Core UX rule
 
-When invoked, determine the requested output mode. There are two primary modes:
+Never put missing-input notices, upload requests, mode questions, or setup messages inside JSON.
 
-1. `storyboard` — a shot-by-shot visual production storyboard, still returned as strict JSON by default.
-2. `json_prompt` — a generator-ready JSON prompt designed to recreate the reference video as closely as observable, substituting the user's product while matching the reference visual treatment.
+JSON is output only after the required media is available and a generation mode has been selected or clearly requested.
 
-If the user has NOT selected a mode, ask only:
+When an input is missing, communicate with a short normal-language UI message.
 
-`اختار الإخراج: 1) Storyboard  2) JSON Prompt`
+If the host supports interactive controls, use native buttons/choice chips and an attachment/file-picker action. If the host does not expose such controls to the skill, fall back to concise text choices. Do not pretend a native button or file picker exists when it does not.
 
-If the user already says storyboard, prompt, JSON, or an equivalent clear request, do not ask again.
+
+## Bundled Companion UI fallback
+
+The package includes `ui/launch-ui.ps1`, a Windows companion picker installed with the skill.
+
+UI priority:
+
+1. If the host exposes native buttons/file-picker actions, use those.
+2. Otherwise, if running in a local agent with shell/filesystem access on Windows, launch the bundled Companion UI with `powershell.exe -NoProfile -ExecutionPolicy Bypass -File <skill-root>\ui\launch-ui.ps1`.
+3. The Companion UI lets the user choose a reference video, product image, and `Video` or `Storyboard`; it writes `~/.product-reference-storyboard/inbox/current.json` containing the selected local paths and copies the invocation command to the clipboard.
+4. A local agent that can read those paths may consume the manifest automatically.
+5. A hosted/cloud chat cannot receive local files merely because the Companion UI selected them; in that case tell the user to attach the selected files using the host upload control. Never claim local selection uploaded a file to a hosted conversation.
+
+Do not try to inject or modify ChatGPT/Claude client UI. The Companion UI is a separate local fallback.
+
+## Input collection flow
+
+### Reference video
+
+If no reference video is attached, show a normal-language prompt equivalent to:
+
+`Reference video?  Yes   No`
+
+- If `Yes`: ask the user to attach/select the reference video. If the host supports a native file picker, use it.
+- If `No`: continue to the next input.
+- Never emit JSON for this step.
+
+### Product image
+
+If no product image is attached, show a normal-language prompt equivalent to:
+
+`Product image?  Yes   No`
+
+- If `Yes`: ask the user to attach/select the product image. If the host supports a native image/file picker, use it.
+- If `No`: continue only when the requested task can be completed without a product lock; otherwise explain briefly that exact product replacement needs an image.
+- Never emit JSON for this step.
+
+### Auto-detect already attached media
+
+Before asking anything, inspect conversation attachments/current message context:
+
+- If a reference video is already present, do not ask for it again.
+- If a product image is already present, do not ask for it again.
+- If both are present, skip all upload questions.
+
+## Mode selection
+
+Once the required media is available, determine the requested output mode.
+
+Primary user-facing choices are:
+
+1. `Video`
+2. `Storyboard`
+
+If the user already wrote `video`, `videos`, `generate video`, `storyboard`, or a clear equivalent, do not ask again.
+
+If the invocation contains only `/product-reference-storyboard` and the required media is already attached, show a normal-language choice:
+
+`عايز Video ولا Storyboard؟`
+
+If interactive controls are supported, render `Video` and `Storyboard` as quick choices. Otherwise use text.
+
+Do not use JSON for the choice screen.
+
+## Mode: Video
+
+`Video` means: produce the best generator-ready JSON specification for recreating the supplied reference video with the user's product substituted into the matching visual role.
+
+After `Video` is selected, do not ask unnecessary follow-up questions. Analyze immediately and return the final JSON prompt.
+
+If the host has a real video-generation action available, the interface may expose a `Generate` action after the specification. The skill itself must not claim it generated a video unless a real video-generation tool/action was actually executed.
+
+The generated specification must target the closest reproducible reference match for all observable characteristics while changing only what is required for the user's product.
+
+## Mode: Storyboard
+
+After `Storyboard` is selected, analyze immediately and return a shot-by-shot storyboard for the supplied product using the reference video as the visual master.
+
+The storyboard must include detailed composition, location/set, product action, camera, lighting, palette/color grade, effects, motion, timing, transitions, continuity, generation prompt and negative constraints for every meaningful shot.
 
 ## Fidelity objective
 
-Treat the reference video as the master for all observable video characteristics except product identity. Aim for the closest reproducible match, but never promise literal pixel-perfect or physically exact reconstruction.
+Treat the reference video as the master for all observable video characteristics except product identity. Aim for the closest reproducible match, but never promise literal pixel-perfect reconstruction when hidden or unrecoverable information exists.
 
 Lock and reproduce, shot by shot:
 
@@ -38,7 +115,6 @@ Lock and reproduce, shot by shot:
 - location/environment appearance and spatial layout;
 - background, surfaces, props, atmosphere and practical elements;
 - dominant, secondary and accent colors;
-- approximate palette values when visually inferable;
 - exposure, contrast, saturation, white balance and color temperature;
 - highlight rolloff, black level, bloom/halation, haze, glow and diffusion;
 - camera height, angle, shot size, lens feel and perspective;
@@ -49,74 +125,66 @@ Lock and reproduce, shot by shot:
 - reflections, shadows, specular highlights and material response;
 - grain/noise/texture and final color-grade character.
 
-Do not invent an exact LUT name, lens model, focal length, camera body, location address, RGB/HEX value, or effect setting unless it can be supported by the reference. When estimated, mark it as `estimated`.
+Do not invent exact LUT names, camera bodies, lens models, focal lengths, location addresses, RGB/HEX values, or effect settings unless supported by the reference. Mark inference as estimated.
 
 ## Product identity lock
 
-The uploaded product image is the master for the replacement product. Preserve visible silhouette, geometry, proportions, materials, transparency, formula/product color, cap/closure, logo, label placement, typography arrangement and distinguishing marks. Do not silently redesign it. Never replace it with the reference brand/product.
+The uploaded product image is the master for replacement-product identity. Preserve visible silhouette, geometry, proportions, materials, transparency, formula/product color, cap/closure, logo, label placement, typography arrangement and distinguishing marks.
 
-When packaging text cannot reliably be generated, instruct the generator to preserve the supplied product-reference image rather than inventing text.
+Never silently redesign the product and never replace it with the reference brand/product.
+
+When packaging text cannot reliably be regenerated, instruct the target generator to use/preserve the supplied product reference rather than inventing packaging text.
+
+## Automatic execution rule
+
+When all of these are true:
+
+- `/product-reference-storyboard` has been invoked or the user clearly asks for this skill behavior;
+- the reference video is present;
+- the product image is present;
+- the user selected or clearly requested `Video` or `Storyboard`;
+
+then execute immediately. Do not respond with `ready`, `status`, `waiting`, `required_next_input`, or any other intermediate JSON envelope.
+
+The next response must be the actual requested deliverable.
 
 ## Analysis workflow
 
-### 1. Product analysis
-Build `product_identity_lock` from the supplied product image(s).
+1. Detect available media and missing media.
+2. Collect missing inputs using normal-language UI only.
+3. Resolve `Video` vs `Storyboard`.
+4. Build `product_identity_lock` from product image(s).
+5. Decompose the full reference timeline into meaningful shots/cuts.
+6. Build the reference visual fingerprint: palette, grade, lighting, camera, motion, effects, textures and environment.
+7. Reconstruct each shot with the user's product in the equivalent visual role.
+8. Run a fidelity pass preventing drift in product identity, location, palette, lighting, camera, timing and effects.
+9. Return only the final deliverable.
 
-### 2. Reference timeline decomposition
-Inspect the full reference and identify every meaningful shot/cut. Record exact or estimated start/end timestamps and duration.
+## Video JSON output
 
-### 3. Visual fingerprint
-Create a `reference_visual_fingerprint` containing:
+Return one strict JSON object. Use:
 
-- `palette`
-- `color_grade`
-- `lighting_signature`
-- `camera_signature`
-- `motion_signature`
-- `effects_signature`
-- `texture_signature`
-- `environment_signature`
+- `skill`
+- `version`
+- `mode: "video"`
+- `goal`
+- `reference_lock`
+- `product_identity_lock`
+- `global_video_settings`
+- `reference_visual_fingerprint`
+- `timeline`
+- `global_negative_constraints`
+- `continuity_lock`
+- `fidelity_priority`
+- `final_master_prompt`
 
-### 4. Shot reconstruction
-For every shot describe the source visual, then map the user's product into the same visual role. Maintain temporal continuity and reference timing.
-
-### 5. Fidelity pass
-Before output, compare every shot against the reference and explicitly prevent drift in palette, lighting, environment, camera, effects, timing and product identity.
-
-## Mode: storyboard
-
-Return strict JSON unless the user explicitly requests another format. Include:
-
-- reference summary and duration;
-- product identity lock;
-- reference visual fingerprint;
-- shot-by-shot storyboard;
-- for every shot: timestamp, duration, scene, composition, product placement/action, camera, lighting, color, effects, transition, continuity, generation prompt and negative constraints;
-- final global continuity rules.
-
-Storyboard prompts must be production-ready rather than generic prose.
-
-## Mode: json_prompt
-
-Return ONE strict JSON object optimized as a complete video-generation specification. It must include:
-
-- `mode: "json_prompt"`;
-- `goal`;
-- `reference_lock`;
-- `product_identity_lock`;
-- `global_video_settings`;
-- `reference_visual_fingerprint`;
-- `timeline` with every shot in order;
-- `global_negative_constraints`;
-- `continuity_lock`;
-- `fidelity_priority`.
-
-Each timeline shot must include:
+Every timeline shot should include:
 
 - `shot_id`
 - `start_time`
 - `end_time`
 - `duration_seconds`
+- `reference_observation`
 - `environment`
 - `composition`
 - `product_role`
@@ -129,26 +197,43 @@ Each timeline shot must include:
 - `transition_out`
 - `prompt`
 - `negative_prompt`
+- `confidence`
 
-The prompt should explicitly tell the target generator to use the supplied reference video for temporal/visual guidance and the supplied product image for identity whenever the target system supports reference conditioning.
+## Storyboard output
+
+Default to strict JSON unless the user explicitly requests a visual/text storyboard format.
+
+Use:
+
+- `skill`
+- `version`
+- `mode: "storyboard"`
+- `reference_summary`
+- `product_identity_lock`
+- `reference_visual_fingerprint`
+- `storyboard`
+- `continuity_lock`
+- `fidelity_priority`
+
+Every storyboard shot should include timestamp, duration, reference observation, environment, composition, product placement/action, camera, lighting, color grade, effects, motion, transition, continuity, generation prompt, negative constraints and confidence.
 
 ## Target model adaptation
 
-If the user names Sora, Veo, Kling, Runway or another generator, preserve the canonical JSON but adapt wording/fields to capabilities that are actually known. Do not fabricate unsupported parameters. If no generator is named, use model-neutral JSON.
+If the user names Sora, Veo, Kling, Runway or another generator, preserve the canonical content but adapt wording/fields only to capabilities that are actually known. Do not fabricate unsupported parameters.
+
+If no generator is named, use model-neutral JSON.
 
 ## Output rules
 
-- JSON is the default machine-readable format in BOTH modes.
+- Missing-input and mode-selection messages are plain conversational text, never JSON.
+- Final Video output is strict JSON by default.
+- Final Storyboard output is strict JSON by default unless the user requests another storyboard presentation.
 - No Markdown fences around final JSON unless explicitly requested.
 - Double quotes only; no comments; no trailing commas.
-- Keep observations distinct from estimates.
-- Use `confidence` or `estimated: true` where needed.
-- Never claim an exact match when information is hidden or technically unrecoverable.
+- Keep observations separate from estimates.
+- Use `confidence` and/or `estimated: true` where appropriate.
+- Never claim an exact technical value that cannot be recovered from the reference.
 - User instruction > product image for product identity > reference video for visual/timing language > generator constraints > clearly marked inference.
-
-## Missing inputs
-
-If video is missing, request/reference it. If product image is missing, request/reference it. If both are available and mode is known, proceed without unnecessary questions.
 
 ## References
 

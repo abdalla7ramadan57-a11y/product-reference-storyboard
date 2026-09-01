@@ -34,5 +34,11 @@ if ($Target -in @("Claude", "Both")) {
     Install-SkillCopy (Join-Path $HOME ".claude\skills")
 }
 
+$uiInstaller = Join-Path $Source "ui\install-ui.ps1"
+if (Test-Path $uiInstaller) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $uiInstaller
+}
+
 Write-Host "Done. Restart/reload your compatible agent so it can rescan skills."
+Write-Host "Companion UI: launch 'Product Reference Storyboard' from Desktop or Start Menu."
 Write-Host "For ChatGPT web/desktop Skills, upload the packaged ZIP from the Skills UI; local PowerShell cannot install into the hosted ChatGPT account."

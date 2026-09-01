@@ -1,10 +1,12 @@
 # Quick Install
 
+Run this command in PowerShell (not Command Prompt):
+
 ```powershell
-irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/823918ea5121d9b7dcf8c8f584903f9e1019733d/install-remote.ps1" | iex
+irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/main/install-remote.ps1" | iex
 ```
 
-This installs or upgrades the skill in the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package, verifies its SHA-256 checksum, and runs the bundled installer with a process-scoped execution-policy bypass. It does not change the permanent Windows execution policy.
+This installs or upgrades the skill and its Windows companion UI. The remote installer verifies the original `v4.0.0` release package and uses a process-scoped execution-policy bypass without changing the permanent Windows policy.
 
 <p align="center">
   <a href="https://www.instagram.com/abdallah_ramadan88?igsi=MjAyMG82bHJqajJj">
@@ -12,30 +14,53 @@ This installs or upgrades the skill in the standard local Agent Skills and Claud
   </a>
 </p>
 
-# Product Reference Storyboard Skill v2
+# Product Reference Storyboard Skill v4
 
-A portable Agent Skill for turning reference video(s) + a product image into a high-fidelity product storyboard and generator-ready prompts.
+A portable Agent Skill that converts a reference video + product image into either a high-fidelity Video JSON prompt or a detailed Storyboard.
 
-## Default behavior
+## Invoke
 
-- Reference video defines location, camera, lighting, composition, pacing, motion, and transitions.
-- Product image defines immutable product identity.
-- Output is strict JSON unless the user explicitly asks for another format.
-- Each shot includes observation, recreation instructions, generation prompt, negative constraints, continuity notes, and confidence.
+`/product-reference-storyboard`
+
+## v4 flow
+
+The skill does not put setup questions inside JSON.
+
+If media is missing it asks with normal messages, using native choice buttons/file pickers when the host actually supports them and concise text fallback otherwise.
+
+Typical flow:
+
+1. Reference video? `Yes / No`
+2. Product image? `Yes / No`
+3. Output? `Video / Storyboard`
+4. If `Video`: immediately return the final generator-ready JSON.
+5. If `Storyboard`: immediately return the full shot-by-shot storyboard.
+
+If the video and product image are already attached, the skill skips the upload questions automatically.
+
+If the user writes `/product-reference-storyboard video` with both media inputs attached, it goes straight to the Video JSON output.
+
+If the user writes `/product-reference-storyboard storyboard` with both media inputs attached, it goes straight to the Storyboard output.
+
+## Fidelity target
+
+Reference video controls shot order, duration, composition, set/location, palette, grade, lighting, camera movement, depth of field, transitions, motion blur, bloom/halation, texture and visible effects. Product image controls product identity and packaging.
+
+The skill aims for the closest reproducible match while avoiding unsupported claims such as invented exact LUT names or camera/lens metadata.
 
 ## Install locally with PowerShell
 
-From an extracted copy of this package:
+From an extracted copy:
 
 ```powershell
-Set-ExecutionPolicy -Scope Process Bypass
+Set-ExecutionPolicy -Scope Process Bypass -Force
 .\install.ps1
 ```
 
-By default this installs to both:
+Default install targets:
 
-- `~/.agents/skills/product-reference-storyboard` for cross-client Agent Skills convention.
-- `~/.claude/skills/product-reference-storyboard` for Claude compatibility.
+- `~/.agents/skills/product-reference-storyboard`
+- `~/.claude/skills/product-reference-storyboard`
 
 Choose one target:
 
@@ -54,38 +79,29 @@ Replace an existing install:
 /product-reference-storyboard
 ```
 
-## ChatGPT
+## Important UI note
 
-ChatGPT Skills are hosted in your ChatGPT account/workspace, so a local PowerShell script cannot install directly into the hosted product. Upload the ZIP through the ChatGPT Skills create/upload flow if your account/workspace has Skills enabled.
-
-## Claude / compatible local agents
-
-The package uses the open Agent Skills `SKILL.md` format. Local compatible clients can discover it from their supported skills directories. The installer writes both the cross-client `.agents/skills/` location and the common Claude `.claude/skills/` location.
-
-## Example request
-
-"Use this video as the exact visual reference and this image as the product. Recreate the storyboard shot by shot. Keep the same location, camera, lighting and pacing. Output JSON."
+`SKILL.md` can instruct a compatible host to use buttons or file-picker controls when available, but it cannot itself force ChatGPT, Claude, Codex, or another client to expose a native `Yes/No`, `Generate`, or file-picker widget. When the host does not expose those controls, the skill uses normal conversational choices instead.
 
 ## Files
 
-- `SKILL.md` — main instructions and activation metadata.
-- `references/output-schema.md` — canonical JSON structure.
-- `references/quality-checklist.md` — fidelity checks.
-- `examples/example-output.json` — sample output.
-- `scripts/validate_json.py` — optional JSON validator.
+- `SKILL.md` — skill behavior and invocation rules.
+- `references/output-schema.md` — v4 output contract.
+- `references/quality-checklist.md` — fidelity and UX checks.
+- `examples/example-output.json` — sample final Video JSON.
+- `scripts/validate_json.py` — JSON validator.
 - `install.ps1` / `uninstall.ps1` — Windows PowerShell helpers.
 - `install-remote.ps1` — checksum-verified one-line installer for the GitHub release.
 
 
-## Output modes
+## Bundled Windows Companion UI
 
-Invoke with:
+The installer also installs a small local picker UI. It can choose:
 
-`/product-reference-storyboard`
+- Reference video
+- Product image
+- Video JSON Prompt or Storyboard
 
-Then choose:
+A Desktop/Start Menu shortcut named `Product Reference Storyboard` is created.
 
-- `1` — Storyboard: shot-by-shot reconstruction plan with prompts.
-- `2` — JSON Prompt: one complete JSON video-generation specification matching the reference timeline, palette, grade, lighting, camera, transitions and visible effects while preserving the supplied product identity.
-
-If the mode is not specified, the skill asks: `اختار الإخراج: 1) Storyboard  2) JSON Prompt`.
+The companion UI is a fallback for clients that do not expose native skill UI actions. It does **not** inject controls into ChatGPT or Claude, and hosted chat still requires files to be attached through the host upload control. Local agents with filesystem access can read the saved manifest at `~/.product-reference-storyboard/inbox/current.json`.

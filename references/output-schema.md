@@ -1,34 +1,53 @@
-# Output schema v2
+# Output schema v3
 
-The skill supports two modes. Both default to strict JSON.
+## Interaction states are NOT JSON
 
-## Shared top-level fields
+Never emit JSON for:
+- missing reference video;
+- missing product image;
+- Yes/No upload questions;
+- Video/Storyboard selection;
+- attachment instructions;
+- readiness/status messages.
+
+Use concise normal-language UI for those states.
+
+## Video mode
+
+Top-level fields:
 - `skill`: `product-reference-storyboard`
-- `version`: `2.0.0`
-- `mode`: `storyboard` or `json_prompt`
-- `reference_analysis`
+- `version`: `3.0.0`
+- `mode`: `video`
+- `goal`
+- `reference_lock`
 - `product_identity_lock`
+- `global_video_settings`
 - `reference_visual_fingerprint`
+- `timeline`
+- `global_negative_constraints`
+- `continuity_lock`
 - `fidelity_priority`
+- `final_master_prompt`
 
-## reference_visual_fingerprint
-Capture observable/estimated:
-- palette: dominant/secondary/accent colors; values may be approximate and must be marked estimated
-- color_grade: temperature, tint, contrast, saturation, black/highlight character
-- lighting_signature: direction, softness, key/fill/rim behavior, practicals, specular response
-- camera_signature: framing, angle, perspective/lens feel, movement
-- motion_signature: speed, easing, stabilization, motion blur
-- effects_signature: bloom, halation, haze, diffusion, grain, speed ramps, transitions, overlays
-- texture_signature: skin/product/surface rendering character
-- environment_signature: set/location, surfaces, props, spatial relationships
+Each `timeline` shot:
+`shot_id`, `start_time`, `end_time`, `duration_seconds`, `reference_observation`, `environment`, `composition`, `product_role`, `camera`, `lighting`, `color_grade`, `effects`, `motion`, `transition_in`, `transition_out`, `prompt`, `negative_prompt`, `confidence`.
 
 ## Storyboard mode
-Top-level `storyboard` array. Each shot contains:
+
+Top-level fields:
+- `skill`
+- `version`
+- `mode`: `storyboard`
+- `reference_summary`
+- `product_identity_lock`
+- `reference_visual_fingerprint`
+- `storyboard`
+- `continuity_lock`
+- `fidelity_priority`
+
+Each `storyboard` shot:
 `shot_id`, `start_time`, `end_time`, `duration_seconds`, `reference_observation`, `environment`, `composition`, `product_role`, `camera`, `lighting`, `color_grade`, `effects`, `motion`, `transition_in`, `transition_out`, `continuity`, `prompt`, `negative_prompt`, `confidence`.
 
-## JSON Prompt mode
-Top-level fields additionally include `goal`, `reference_lock`, `global_video_settings`, `timeline`, `global_negative_constraints`, `continuity_lock`.
-Each `timeline` item uses the same shot fields, optimized as generator instructions.
+## JSON validity
 
-## Validity
-Valid JSON only by default: double quotes, no comments, no trailing commas, no prose outside the JSON object.
+Final machine outputs use valid JSON only by default: double quotes, no comments, no trailing commas, no prose outside the JSON object.

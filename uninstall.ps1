@@ -16,3 +16,9 @@ foreach ($Path in $Targets) {
         Write-Host "Not found: $Path"
     }
 }
+
+
+$uiUninstaller = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "ui\uninstall-ui.ps1"
+if (Test-Path $uiUninstaller) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $uiUninstaller
+}
