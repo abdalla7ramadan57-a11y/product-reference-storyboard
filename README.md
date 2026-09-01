@@ -1,7 +1,7 @@
 # Quick Install
 
 ```powershell
-irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/main/install-remote.ps1" | iex
+irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/823918ea5121d9b7dcf8c8f584903f9e1019733d/install-remote.ps1" | iex
 ```
 
 This installs or upgrades the skill in the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package, verifies its SHA-256 checksum, and runs the bundled installer with a process-scoped execution-policy bypass. It does not change the permanent Windows execution policy.
