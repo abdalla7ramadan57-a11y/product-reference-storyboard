@@ -1,9 +1,9 @@
 $ErrorActionPreference = "Stop"
 
 $Repository = "abdalla7ramadan57-a11y/product-reference-storyboard"
-$Version = "v1.0.0"
-$AssetName = "product-reference-storyboard-skill-v1.0.0.zip"
-$ExpectedSha256 = "6DDE0F625EA5AC092C9C297634FE9AA8D82E7CB78483F2276DA6EBB67DEC396B"
+$Version = "v2.0.0"
+$AssetName = "product-reference-skill-v2.0.0.zip"
+$ExpectedSha256 = "F707D844CCF4E692090115294A8C65338075D31165CAE58E49B005F6CC3F9BFE"
 $DownloadUrl = "https://github.com/$Repository/releases/download/$Version/$AssetName"
 $TemporaryDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("product-reference-storyboard-" + [guid]::NewGuid().ToString("N"))
 $ArchivePath = Join-Path $TemporaryDirectory $AssetName

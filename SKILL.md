@@ -1,139 +1,157 @@
 ---
 name: product-reference-storyboard
-description: Analyze one or more reference videos plus a product image, then create a production-ready storyboard and generation prompts that preserve the product identity while matching the reference video's location, composition, camera language, lighting, pacing, and visual continuity. Use for product ads, UGC-style recreations, cinematic product shots, reference-to-storyboard tasks, or when the user asks to make a video "like this" from uploaded video/image references. Default output is strict JSON unless the user explicitly requests another prompt format.
+description: Analyze reference video(s) plus a product image and produce either a visual storyboard or a strict JSON video-recreation prompt. Match the reference's observable shot sequence, timing, palette, grading, lighting, camera, transitions, motion, atmosphere, and effects while preserving the user's product identity. Invoke with /product-reference-storyboard.
 metadata:
   author: openai-generated
-  version: "1.0.0"
-  compatibility: Agent Skills compatible clients including ChatGPT Skills, Claude/Claude Code, OpenAI Codex, and clients that support the Agent Skills open format. Visual/video analysis capability is required for direct media understanding.
+  version: "2.0.0"
+  compatibility: Agent Skills compatible clients including ChatGPT Skills, Claude/Claude Code, OpenAI Codex, and clients supporting the Agent Skills open format. Visual/video analysis capability is required for direct media understanding.
 ---
 
-# Product Reference Storyboard
+# Product Reference Storyboard v2
 
-Create a high-fidelity storyboard from reference video(s) and a product image. The product image defines product identity. The reference video defines scene language: location, staging, composition, camera, lighting, movement, pacing, transitions, and mood.
+## Invocation
 
-## Activation inputs
+`/product-reference-storyboard`
 
-Use this skill when the user provides or refers to:
+## Mandatory mode selection
 
-- one or more reference videos, clips, GIFs, or extracted frames;
-- a product image or several product images;
-- optionally a brand guide, logo, text, target duration, aspect ratio, or target video model.
+When invoked, determine the requested output mode. There are two primary modes:
 
-If media is available, inspect it directly. Do not invent visual details that cannot be observed. When direct video inspection is unavailable, use any provided frames/transcript/description and mark uncertain fields accordingly.
+1. `storyboard` — a shot-by-shot visual production storyboard, still returned as strict JSON by default.
+2. `json_prompt` — a generator-ready JSON prompt designed to recreate the reference video as closely as observable, substituting the user's product while matching the reference visual treatment.
 
-## Core rules
+If the user has NOT selected a mode, ask only:
 
-1. **Product identity is immutable.** Preserve visible shape, proportions, colors, materials, label layout, logo placement, packaging geometry, cap/lid, texture, and distinctive product details. Do not silently redesign the product.
-2. **Reference video controls visual language.** Recreate the observable location and scene structure as closely as the user's request permits: environment type, surfaces, architecture, props, spatial arrangement, time of day, lighting direction/quality, lens feel, camera height/angle, framing, depth of field, motion, blocking, pacing, and transitions.
-3. **Do not confuse similarity with hallucination.** Separate observations from inferences. Use `confidence` fields when a detail is not fully visible.
-4. **Continuity matters across shots.** Maintain product orientation, label direction, prop placement, lighting direction, surface, environment, wardrobe/hands (if any), and color treatment unless the reference intentionally changes them.
-5. **Default output is strict JSON.** If the user does not explicitly request another prompt format, return JSON only: no Markdown fences, no prose before or after it.
-6. **If the user names a target generator** (for example Sora, Veo, Runway, Kling, Midjourney, Flux, or another system), adapt prompt wording and supported fields while preserving the canonical JSON structure as much as possible.
-7. **If the user asks for a different format**, follow that request instead of JSON.
-8. Never claim pixel-perfect identity or exact physical-location reconstruction when the reference does not reveal enough information. Represent uncertainty explicitly.
+`اختار الإخراج: 1) Storyboard  2) JSON Prompt`
 
-## Workflow
+If the user already says storyboard, prompt, JSON, or an equivalent clear request, do not ask again.
 
-### Step 1 — Inspect product identity
+## Fidelity objective
 
-Build a compact product identity lock from the uploaded product image(s):
+Treat the reference video as the master for all observable video characteristics except product identity. Aim for the closest reproducible match, but never promise literal pixel-perfect or physically exact reconstruction.
 
-- category and silhouette;
-- exact visible colors and materials;
-- packaging geometry and proportions;
-- label/logo/text placement;
-- closures, handles, seams, embossing, transparency, reflections;
-- distinguishing marks;
-- angles that are safe to show without inventing unseen details.
+Lock and reproduce, shot by shot:
 
-Do not infer hidden label text or unseen sides as facts.
+- shot count and cut order;
+- shot durations and overall duration;
+- aspect ratio and framing;
+- location/environment appearance and spatial layout;
+- background, surfaces, props, atmosphere and practical elements;
+- dominant, secondary and accent colors;
+- approximate palette values when visually inferable;
+- exposure, contrast, saturation, white balance and color temperature;
+- highlight rolloff, black level, bloom/halation, haze, glow and diffusion;
+- camera height, angle, shot size, lens feel and perspective;
+- camera motion, direction, speed, easing and stabilization character;
+- depth of field, focus plane and focus transitions;
+- subject/product motion and timing;
+- transitions, speed ramps, motion blur, whip effects, match cuts, fades and other visible effects;
+- reflections, shadows, specular highlights and material response;
+- grain/noise/texture and final color-grade character.
 
-### Step 2 — Decompose the reference video
+Do not invent an exact LUT name, lens model, focal length, camera body, location address, RGB/HEX value, or effect setting unless it can be supported by the reference. When estimated, mark it as `estimated`.
 
-Break the reference into shots. For each shot capture:
+## Product identity lock
 
-- start/end time or relative order;
-- location/environment;
-- foreground / subject plane / background;
-- product or actor placement;
-- shot size and composition;
-- camera height, angle, lens feel, camera movement;
-- subject motion;
-- lighting source, direction, hardness, color temperature, contrast;
-- depth of field / focus behavior;
-- key props, surfaces, architecture, weather, atmosphere;
-- transition in/out;
-- approximate duration and pacing;
-- notable visual effect or grading.
+The uploaded product image is the master for the replacement product. Preserve visible silhouette, geometry, proportions, materials, transparency, formula/product color, cap/closure, logo, label placement, typography arrangement and distinguishing marks. Do not silently redesign it. Never replace it with the reference brand/product.
 
-If multiple cuts occur rapidly, still preserve shot boundaries unless the user asks for a simplified storyboard.
+When packaging text cannot reliably be generated, instruct the generator to preserve the supplied product-reference image rather than inventing text.
 
-### Step 3 — Build the recreation plan
+## Analysis workflow
 
-Map the user's product into the reference scene without redesigning it. Preserve the reference's composition and blocking where possible. If the reference subject has a different shape/size, adapt placement minimally so the user's product remains physically plausible.
+### 1. Product analysis
+Build `product_identity_lock` from the supplied product image(s).
 
-For each shot, define:
+### 2. Reference timeline decomposition
+Inspect the full reference and identify every meaningful shot/cut. Record exact or estimated start/end timestamps and duration.
 
-- what from the reference must remain fixed;
-- what is replaced by the user's product;
-- product pose/orientation;
-- exact camera and lighting intent;
-- continuity notes to previous/next shot;
-- generator-ready prompt;
-- negative constraints to prevent product drift and scene drift.
+### 3. Visual fingerprint
+Create a `reference_visual_fingerprint` containing:
 
-### Step 4 — Output JSON
+- `palette`
+- `color_grade`
+- `lighting_signature`
+- `camera_signature`
+- `motion_signature`
+- `effects_signature`
+- `texture_signature`
+- `environment_signature`
 
-Use the canonical schema in `references/output-schema.md`.
+### 4. Shot reconstruction
+For every shot describe the source visual, then map the user's product into the same visual role. Maintain temporal continuity and reference timing.
 
-The JSON must be syntactically valid. Use double quotes, no comments, no trailing commas, and no Markdown code fence.
+### 5. Fidelity pass
+Before output, compare every shot against the reference and explicitly prevent drift in palette, lighting, environment, camera, effects, timing and product identity.
 
-For each shot, write the prompt as a dense production instruction, not a vague description. Include observable spatial relationships and camera behavior.
+## Mode: storyboard
 
-### Step 5 — Validate
+Return strict JSON unless the user explicitly requests another format. Include:
 
-Before returning the answer, mentally verify:
+- reference summary and duration;
+- product identity lock;
+- reference visual fingerprint;
+- shot-by-shot storyboard;
+- for every shot: timestamp, duration, scene, composition, product placement/action, camera, lighting, color, effects, transition, continuity, generation prompt and negative constraints;
+- final global continuity rules.
 
-- valid JSON;
-- every shot has a unique `shot_id`;
-- durations are plausible and ordered;
-- no product identity conflicts;
-- location details remain consistent;
-- camera and lighting instructions are actionable;
-- unknown details are labeled as uncertain instead of fabricated.
+Storyboard prompts must be production-ready rather than generic prose.
 
-If a local runtime is available, the agent may run:
+## Mode: json_prompt
 
-`python scripts/validate_json.py <output.json>`
+Return ONE strict JSON object optimized as a complete video-generation specification. It must include:
 
-## Prompt-writing pattern
+- `mode: "json_prompt"`;
+- `goal`;
+- `reference_lock`;
+- `product_identity_lock`;
+- `global_video_settings`;
+- `reference_visual_fingerprint`;
+- `timeline` with every shot in order;
+- `global_negative_constraints`;
+- `continuity_lock`;
+- `fidelity_priority`.
 
-A strong shot prompt normally follows this semantic order inside one string:
+Each timeline shot must include:
 
-`product identity lock -> exact environment -> product placement/action -> composition -> camera/lens/movement -> lighting -> materials/reflections -> depth/focus -> atmosphere/color grade -> continuity -> constraints`
+- `shot_id`
+- `start_time`
+- `end_time`
+- `duration_seconds`
+- `environment`
+- `composition`
+- `product_role`
+- `camera`
+- `lighting`
+- `color_grade`
+- `effects`
+- `motion`
+- `transition_in`
+- `transition_out`
+- `prompt`
+- `negative_prompt`
 
-Avoid empty adjectives such as "beautiful" or "premium" unless the reference visibly supports them. Prefer measurable visual descriptions.
+The prompt should explicitly tell the target generator to use the supplied reference video for temporal/visual guidance and the supplied product image for identity whenever the target system supports reference conditioning.
 
-## Reference fidelity hierarchy
+## Target model adaptation
 
-When details conflict, apply this order:
+If the user names Sora, Veo, Kling, Runway or another generator, preserve the canonical JSON but adapt wording/fields to capabilities that are actually known. Do not fabricate unsupported parameters. If no generator is named, use model-neutral JSON.
 
-1. explicit user instruction;
-2. user's product image for product identity;
-3. reference video for scene/camera/lighting/pacing;
-4. target generator constraints;
-5. reasonable production inference, clearly marked when uncertain.
+## Output rules
+
+- JSON is the default machine-readable format in BOTH modes.
+- No Markdown fences around final JSON unless explicitly requested.
+- Double quotes only; no comments; no trailing commas.
+- Keep observations distinct from estimates.
+- Use `confidence` or `estimated: true` where needed.
+- Never claim an exact match when information is hidden or technically unrecoverable.
+- User instruction > product image for product identity > reference video for visual/timing language > generator constraints > clearly marked inference.
 
 ## Missing inputs
 
-If the product image is missing, still analyze the reference and return a storyboard template with `product_identity.status` set to `missing_input`.
+If video is missing, request/reference it. If product image is missing, request/reference it. If both are available and mode is known, proceed without unnecessary questions.
 
-If the video is missing, return a product identity analysis plus a storyboard shell and set `reference_analysis.status` to `missing_input`.
+## References
 
-If both are present, do not ask unnecessary questions. Produce the best complete result from available evidence.
-
-## Additional references
-
-- Canonical JSON schema: `references/output-schema.md`
-- Quality and fidelity checklist: `references/quality-checklist.md`
-- Example output: `examples/example-output.json`
+- `references/output-schema.md`
+- `references/quality-checklist.md`
+- `examples/example-output.json`

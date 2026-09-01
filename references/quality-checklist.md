@@ -1,34 +1,15 @@
-# Quality and Fidelity Checklist
+# Fidelity checklist v2
 
-## Product lock
-- Same silhouette and packaging geometry as the uploaded product.
-- Same visible colors/materials.
-- Same label/logo placement.
-- No invented text on hidden or unreadable areas.
-- No accidental cap, nozzle, handle, seam, or proportion changes.
-
-## Scene lock
-- Same environment category and visible architectural/surface details.
-- Same relative prop layout when observable.
-- Same subject position within frame.
-- Same camera height/angle and similar focal-length feel.
-- Same lighting direction, softness/hardness, contrast, and time-of-day feel.
-- Same depth-of-field behavior and focus target.
-
-## Motion lock
-- Same camera motion type and direction.
-- Same subject/action timing.
-- Same cut rhythm and transition style.
-- Avoid introducing new camera moves not present in the reference.
-
-## Continuity lock
-- Product orientation and label direction remain consistent.
-- Light direction does not flip without a motivated cut.
-- Props and background features do not teleport.
-- Surface, weather, wardrobe/hands, and grade remain coherent.
-
-## Prompt quality
-- Describe spatial relationships, not just adjectives.
-- State what is fixed and what changes.
-- Include concrete negative constraints.
-- Mark uncertain observations instead of presenting them as facts.
+Before output verify:
+- mode is explicitly storyboard or json_prompt;
+- product identity comes from the product image, not the reference brand;
+- all meaningful cuts are represented and ordered;
+- total timeline approximately matches reference duration;
+- environment and spatial relationships follow the reference;
+- palette, temperature, contrast, saturation and highlight/black behavior are captured;
+- visible bloom, haze, diffusion, grain, motion blur, speed ramps and transitions are captured;
+- camera angle, framing, movement direction/speed and focus behavior are actionable;
+- continuity prevents product, color, lighting, set and orientation drift;
+- estimates are marked and unsupported technical values are not invented;
+- negative constraints block wrong brand/product, packaging drift, color drift, location drift and effect drift;
+- JSON is syntactically valid.

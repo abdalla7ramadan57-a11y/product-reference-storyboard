@@ -4,9 +4,9 @@
 irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/main/install-remote.ps1" | iex
 ```
 
-This installs the skill into the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v1.0.0` release package and verifies its SHA-256 checksum before running the bundled installer.
+This installs the skill into the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package and verifies its SHA-256 checksum before running the bundled installer.
 
-# Product Reference Storyboard Skill
+# Product Reference Storyboard Skill v2
 
 A portable Agent Skill for turning reference video(s) + a product image into a high-fidelity product storyboard and generator-ready prompts.
 
@@ -69,3 +69,17 @@ The package uses the open Agent Skills `SKILL.md` format. Local compatible clien
 - `scripts/validate_json.py` — optional JSON validator.
 - `install.ps1` / `uninstall.ps1` — Windows PowerShell helpers.
 - `install-remote.ps1` — checksum-verified one-line installer for the GitHub release.
+
+
+## Output modes
+
+Invoke with:
+
+`/product-reference-storyboard`
+
+Then choose:
+
+- `1` — Storyboard: shot-by-shot reconstruction plan with prompts.
+- `2` — JSON Prompt: one complete JSON video-generation specification matching the reference timeline, palette, grade, lighting, camera, transitions and visible effects while preserving the supplied product identity.
+
+If the mode is not specified, the skill asks: `اختار الإخراج: 1) Storyboard  2) JSON Prompt`.

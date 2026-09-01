@@ -1,107 +1,34 @@
-# Canonical JSON Output Schema
+# Output schema v2
 
-Return one JSON object. This is a semantic schema; fields may be extended for a named target model, but core fields should remain.
+The skill supports two modes. Both default to strict JSON.
 
-```json
-{
-  "schema_version": "1.0",
-  "task": "reference_video_to_product_storyboard",
-  "output_format": "json",
-  "source_summary": {
-    "reference_video_count": 1,
-    "product_image_count": 1,
-    "target_duration_seconds": null,
-    "aspect_ratio": null,
-    "target_generator": null
-  },
-  "product_identity": {
-    "status": "observed",
-    "category": "",
-    "identity_lock": [],
-    "visible_text": [],
-    "materials": [],
-    "colors": [],
-    "geometry": [],
-    "do_not_change": [],
-    "uncertain_or_unseen": []
-  },
-  "reference_analysis": {
-    "status": "observed",
-    "overall_location": "",
-    "environment_lock": [],
-    "lighting_language": "",
-    "camera_language": "",
-    "color_grade": "",
-    "pacing": "",
-    "continuity_lock": [],
-    "uncertainties": []
-  },
-  "storyboard": [
-    {
-      "shot_id": "S01",
-      "source_timecode": {
-        "start": "00:00.000",
-        "end": "00:02.000"
-      },
-      "duration_seconds": 2.0,
-      "reference_observation": {
-        "location": "",
-        "foreground": "",
-        "subject_plane": "",
-        "background": "",
-        "composition": "",
-        "camera": {
-          "shot_size": "",
-          "height": "",
-          "angle": "",
-          "lens_feel": "",
-          "movement": ""
-        },
-        "lighting": {
-          "source": "",
-          "direction": "",
-          "quality": "",
-          "temperature": "",
-          "contrast": ""
-        },
-        "action": "",
-        "focus_and_dof": "",
-        "transition_in": "",
-        "transition_out": "",
-        "confidence": 0.0
-      },
-      "recreation": {
-        "keep_from_reference": [],
-        "replace_with_product": "",
-        "product_pose": "",
-        "continuity_notes": [],
-        "generation_prompt": "",
-        "negative_prompt": []
-      }
-    }
-  ],
-  "global_generation_constraints": {
-    "must_preserve": [],
-    "must_avoid": [],
-    "continuity": [],
-    "rendering_notes": []
-  },
-  "final_master_prompt": "",
-  "quality_control": {
-    "json_valid": true,
-    "product_identity_consistent": true,
-    "reference_location_consistent": true,
-    "shot_continuity_consistent": true,
-    "known_limitations": []
-  }
-}
-```
+## Shared top-level fields
+- `skill`: `product-reference-storyboard`
+- `version`: `2.0.0`
+- `mode`: `storyboard` or `json_prompt`
+- `reference_analysis`
+- `product_identity_lock`
+- `reference_visual_fingerprint`
+- `fidelity_priority`
 
-## Field rules
+## reference_visual_fingerprint
+Capture observable/estimated:
+- palette: dominant/secondary/accent colors; values may be approximate and must be marked estimated
+- color_grade: temperature, tint, contrast, saturation, black/highlight character
+- lighting_signature: direction, softness, key/fill/rim behavior, practicals, specular response
+- camera_signature: framing, angle, perspective/lens feel, movement
+- motion_signature: speed, easing, stabilization, motion blur
+- effects_signature: bloom, halation, haze, diffusion, grain, speed ramps, transitions, overlays
+- texture_signature: skin/product/surface rendering character
+- environment_signature: set/location, surfaces, props, spatial relationships
 
-- `confidence`: number from 0.0 to 1.0.
-- `source_timecode`: use real timecodes if observable; otherwise use relative labels and state that timing is estimated.
-- `generation_prompt`: one generator-ready instruction for that shot.
-- `negative_prompt`: array of concrete failure modes, especially product redesign, wrong label/logo, wrong package shape, duplicate products, wrong surface, wrong background architecture, wrong camera angle, wrong lighting direction, floating objects, warped geometry, unreadable brand marks, and inconsistent continuity.
-- `final_master_prompt`: optional concatenated/director-level instruction tying all shots together. Keep it consistent with per-shot prompts.
-- When the target generator has no negative-prompt concept, retain `negative_prompt` in the canonical JSON as constraints unless the user requests the generator's native schema only.
+## Storyboard mode
+Top-level `storyboard` array. Each shot contains:
+`shot_id`, `start_time`, `end_time`, `duration_seconds`, `reference_observation`, `environment`, `composition`, `product_role`, `camera`, `lighting`, `color_grade`, `effects`, `motion`, `transition_in`, `transition_out`, `continuity`, `prompt`, `negative_prompt`, `confidence`.
+
+## JSON Prompt mode
+Top-level fields additionally include `goal`, `reference_lock`, `global_video_settings`, `timeline`, `global_negative_constraints`, `continuity_lock`.
+Each `timeline` item uses the same shot fields, optimized as generator instructions.
+
+## Validity
+Valid JSON only by default: double quotes, no comments, no trailing commas, no prose outside the JSON object.
