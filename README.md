@@ -6,6 +6,12 @@ Run this command in PowerShell (not Command Prompt):
 irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/35b602f28c7e51964cb7c1bdb1fa295b9a1e924d/install-remote.ps1" | iex
 ```
 
+If your terminal says **Command Prompt** or shows a prompt such as `C:\Users\name>`, use this CMD-compatible command instead:
+
+```cmd
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Invoke-RestMethod 'https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/35b602f28c7e51964cb7c1bdb1fa295b9a1e924d/install-remote.ps1' | Invoke-Expression"
+```
+
 This installs or upgrades the skill and its Windows companion UI. The remote installer verifies the original `v4.0.0` release package and uses a process-scoped execution-policy bypass without changing the permanent Windows policy.
 
 <p align="center">
