@@ -24,7 +24,11 @@ try {
         throw "The release package does not contain product-reference-storyboard\install.ps1."
     }
 
-    & $InstallerPath
+    $PowerShellExecutable = (Get-Process -Id $PID).Path
+    & $PowerShellExecutable -NoLogo -NoProfile -ExecutionPolicy Bypass -File $InstallerPath -Force
+    if ($LASTEXITCODE -ne 0) {
+        throw "The bundled installer exited with code $LASTEXITCODE."
+    }
 }
 finally {
     if (Test-Path -LiteralPath $TemporaryDirectory) {

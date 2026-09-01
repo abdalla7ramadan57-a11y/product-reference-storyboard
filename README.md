@@ -4,7 +4,7 @@
 irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-storyboard/main/install-remote.ps1" | iex
 ```
 
-This installs the skill into the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package and verifies its SHA-256 checksum before running the bundled installer.
+This installs or upgrades the skill in the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package, verifies its SHA-256 checksum, and runs the bundled installer with a process-scoped execution-policy bypass. It does not change the permanent Windows execution policy.
 
 # Product Reference Storyboard Skill v2
 
