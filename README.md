@@ -6,6 +6,12 @@ irm "https://raw.githubusercontent.com/abdalla7ramadan57-a11y/product-reference-
 
 This installs or upgrades the skill in the standard local Agent Skills and Claude-compatible skill directories. The remote installer downloads the original `v2.0.0` release package, verifies its SHA-256 checksum, and runs the bundled installer with a process-scoped execution-policy bypass. It does not change the permanent Windows execution policy.
 
+<p align="center">
+  <a href="https://www.instagram.com/abdallah_ramadan88?igsi=MjAyMG82bHJqajJj">
+    <img src="https://img.shields.io/badge/Instagram-%40abdallah__ramadan88-E4405F?style=for-the-badge&amp;logo=instagram&amp;logoColor=white" alt="Follow @abdallah_ramadan88 on Instagram">
+  </a>
+</p>
+
 # Product Reference Storyboard Skill v2
 
 A portable Agent Skill for turning reference video(s) + a product image into a high-fidelity product storyboard and generator-ready prompts.
