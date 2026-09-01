@@ -1,0 +1,89 @@
+{
+  "schema_version": "1.0",
+  "task": "reference_video_to_product_storyboard",
+  "output_format": "json",
+  "source_summary": {
+    "reference_video_count": 1,
+    "product_image_count": 1,
+    "target_duration_seconds": 6,
+    "aspect_ratio": "9:16",
+    "target_generator": null
+  },
+  "product_identity": {
+    "status": "observed",
+    "category": "bottled consumer product",
+    "identity_lock": ["preserve exact bottle silhouette", "preserve label placement and visible logo"],
+    "visible_text": [],
+    "materials": ["glossy container", "printed label"],
+    "colors": ["use only colors observed in the uploaded product image"],
+    "geometry": ["preserve cap-to-body proportions"],
+    "do_not_change": ["logo", "label layout", "container geometry"],
+    "uncertain_or_unseen": ["rear label is not visible"]
+  },
+  "reference_analysis": {
+    "status": "observed",
+    "overall_location": "bright modern kitchen counter",
+    "environment_lock": ["light stone counter", "softly blurred cabinetry in background"],
+    "lighting_language": "soft daylight from camera-left with gentle fill",
+    "camera_language": "close product coverage with slow push-in",
+    "color_grade": "clean neutral commercial grade",
+    "pacing": "three short shots with smooth cuts",
+    "continuity_lock": ["keep product label facing camera", "keep light direction from camera-left"],
+    "uncertainties": []
+  },
+  "storyboard": [
+    {
+      "shot_id": "S01",
+      "source_timecode": {"start": "00:00.000", "end": "00:02.000"},
+      "duration_seconds": 2.0,
+      "reference_observation": {
+        "location": "modern kitchen counter",
+        "foreground": "clean stone counter edge",
+        "subject_plane": "single product centered slightly below frame midpoint",
+        "background": "softly blurred cabinetry",
+        "composition": "vertical close product shot with generous headroom",
+        "camera": {
+          "shot_size": "close-up",
+          "height": "near product mid-height",
+          "angle": "nearly straight-on",
+          "lens_feel": "normal-to-short-telephoto compression",
+          "movement": "very slow push-in"
+        },
+        "lighting": {
+          "source": "large soft daylight source",
+          "direction": "camera-left",
+          "quality": "soft",
+          "temperature": "neutral daylight",
+          "contrast": "low-to-medium"
+        },
+        "action": "product remains stationary while camera advances",
+        "focus_and_dof": "product label sharp, background strongly softened",
+        "transition_in": "hard cut",
+        "transition_out": "hard cut",
+        "confidence": 0.93
+      },
+      "recreation": {
+        "keep_from_reference": ["counter material", "background layout", "camera height", "push-in direction", "daylight direction"],
+        "replace_with_product": "replace the reference hero object with the uploaded product while keeping the same screen position and scale",
+        "product_pose": "upright, front label facing camera",
+        "continuity_notes": ["keep camera-left key light for following shots"],
+        "generation_prompt": "Use the uploaded product as the exact identity reference. Place it upright on the same style light stone kitchen counter, centered slightly below the vertical frame midpoint, with softly blurred modern cabinetry behind it. Preserve the product's exact silhouette, proportions, materials, visible colors, label layout, and logo placement. Camera at product mid-height, nearly straight-on, close-up framing, normal-to-short-telephoto lens feel, very slow controlled push-in. Large soft daylight from camera-left with neutral white balance, gentle reflections on the product, low-to-medium contrast. Keep the product label critically sharp and the background strongly defocused. Clean neutral commercial grade. No scene redesign.",
+        "negative_prompt": ["do not alter product shape", "do not redesign label", "do not move logo", "no extra products", "no warped text", "no different kitchen layout", "no light from camera-right", "no handheld shake"]
+      }
+    }
+  ],
+  "global_generation_constraints": {
+    "must_preserve": ["uploaded product identity", "reference environment language", "camera and lighting continuity"],
+    "must_avoid": ["product drift", "brand drift", "background redesign", "unmotivated camera changes"],
+    "continuity": ["same label-facing orientation across shots", "same key-light direction"],
+    "rendering_notes": ["photorealistic unless user requests another style"]
+  },
+  "final_master_prompt": "Recreate the reference video's visual language shot-by-shot while replacing only the hero object with the uploaded product. Preserve exact product identity and maintain reference location, composition, camera motion, lighting direction, depth of field, pacing, and continuity.",
+  "quality_control": {
+    "json_valid": true,
+    "product_identity_consistent": true,
+    "reference_location_consistent": true,
+    "shot_continuity_consistent": true,
+    "known_limitations": []
+  }
+}
