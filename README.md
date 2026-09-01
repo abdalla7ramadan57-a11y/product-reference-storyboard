@@ -44,6 +44,10 @@ Replace an existing install:
 .\install.ps1 -Force
 ```
 
+```text
+/product-reference-storyboard
+```
+
 ## ChatGPT
 
 ChatGPT Skills are hosted in your ChatGPT account/workspace, so a local PowerShell script cannot install directly into the hosted product. Upload the ZIP through the ChatGPT Skills create/upload flow if your account/workspace has Skills enabled.
